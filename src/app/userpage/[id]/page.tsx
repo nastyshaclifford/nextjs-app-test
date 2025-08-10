@@ -2,55 +2,29 @@
     import { User } from "@/types/user";
 
     async function getUser(id: number): Promise<User | null> {
-    try {
-        const res = await fetch(`https://jsonplaceholder.typicode.com/users/${id}`, {
-        next: { revalidate: 60 },
-        });
-
-        if (!res.ok) return null;
-        
-        const data = await res.json();
-        return {
-        id: data.id,
-        name: data.name || '',
-        username: data.username || '',
-        email: data.email || '',
-        phone: data.phone || '',
-        website: data.website || '',
-        address: {
-            street: data.address?.street || '',
-            suite: data.address?.suite || '',
-            city: data.address?.city || '',
-            zipcode: data.address?.zipcode || '',
-        },
-        company: {
-            name: data.company?.name || '',
-            catchPhrase: data.company?.catchPhrase || '',
-            bs: data.company?.bs || '',
-        }
-        } as User;
-    } catch (error) {
-        console.error('Ошибка при загрузке пользователя:', error);
-        return null;
+    const res = await fetch(`https://jsonplaceholder.typicode.com/users/${id}`);
+    if (!res.ok) return null;
+    return res.json();
     }
-    }
-    interface PageProps {
+    interface UserPageParams {
     params: {
         id: string;
     };
     }
 
-    export default async function UserPage({ params }: PageProps) {
-    const id = Number(params.id);
-    if (isNaN(id)) return <div className="p-8 text-center">Неверный ID пользователя</div>;
+    export default async function UserPage({ params }: UserPageParams) {
+    const userId = parseInt(params.id, 10);
+    if (isNaN(userId)) {
+        return <div className="p-4 text-red-500">Invalid user ID format</div>;
+    }
 
-    const user = await getUser(id);
-
-    if (!user) return <div className="p-8 text-center">Пользователь не найден</div>;
+    const user = await getUser(userId);
+    if (!user) {
+        return <div className="p-4 text-red-500">User not found</div>;
+    }
 
     return <UserPageClient initialUser={user} />;
     }
-
 
 
 
